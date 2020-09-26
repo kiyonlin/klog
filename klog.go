@@ -723,8 +723,8 @@ func (l *loggingT) printDepth(s severity, logr logr.Logger, depth int, args ...i
 	l.output(s, logr, buf, file, line, false)
 }
 
-func (l *loggingT) printf(s severity, logr logr.Logger, format string, args ...interface{}) {
-	buf, file, line := l.header(s, 0)
+func (l *loggingT) printf(s severity, logr logr.Logger, depth int, format string, args ...interface{}) {
+	buf, file, line := l.header(s, depth)
 	// if logr is set, we clear the generated header as we rely on the backing
 	// logr implementation to print headers
 	if logr != nil {
@@ -1325,11 +1325,27 @@ func (v Verbose) Infoln(args ...interface{}) {
 	}
 }
 
+// InfoDepth acts as Infoln but uses depth to determine which call frame to log.
+// InfoDepth(0, "msg") is the same as Infoln("msg").
+func (v Verbose) InfoDepth(depth int, args ...interface{}) {
+	if v.enabled {
+		logging.printDepth(infoLog, v.logr, depth, args...)
+	}
+}
+
 // Infof is equivalent to the global Infof function, guarded by the value of v.
 // See the documentation of V for usage.
 func (v Verbose) Infof(format string, args ...interface{}) {
 	if v.enabled {
-		logging.printf(infoLog, v.logr, format, args...)
+		logging.printf(infoLog, v.logr, 0, format, args...)
+	}
+}
+
+// InfoDepthf acts as Infof but uses depth to determine which call frame to log.
+// InfoDepthf(0, "msg") is the same as Infof("msg").
+func (v Verbose) InfoDepthf(depth int, format string, args ...interface{}) {
+	if v.enabled {
+		logging.printf(infoLog, v.logr, depth, format, args...)
 	}
 }
 
@@ -1377,7 +1393,13 @@ func Infoln(args ...interface{}) {
 // Infof logs to the INFO log.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Infof(format string, args ...interface{}) {
-	logging.printf(infoLog, logging.logr, format, args...)
+	logging.printf(infoLog, logging.logr, 0, format, args...)
+}
+
+// InfoDepthf acts as Infof but uses depth to determine which call frame to log.
+// InfoDepthf(0, "msg") is the same as Infof("msg").
+func InfoDepthf(depth int, format string, args ...interface{}) {
+	logging.printf(infoLog, logging.logr, depth, format, args...)
 }
 
 // InfoS structured logs to the INFO log.
@@ -1413,7 +1435,13 @@ func Warningln(args ...interface{}) {
 // Warningf logs to the WARNING and INFO logs.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Warningf(format string, args ...interface{}) {
-	logging.printf(warningLog, logging.logr, format, args...)
+	logging.printf(warningLog, logging.logr, 0, format, args...)
+}
+
+// WarningDepthf acts as Warningf but uses depth to determine which call frame to log.
+// WarningDepthf(0, "msg") is the same as Warningf("msg").
+func WarningDepthf(depth int, format string, args ...interface{}) {
+	logging.printf(warningLog, logging.logr, depth, format, args...)
 }
 
 // Error logs to the ERROR, WARNING, and INFO logs.
@@ -1437,7 +1465,13 @@ func Errorln(args ...interface{}) {
 // Errorf logs to the ERROR, WARNING, and INFO logs.
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Errorf(format string, args ...interface{}) {
-	logging.printf(errorLog, logging.logr, format, args...)
+	logging.printf(errorLog, logging.logr, 0, format, args...)
+}
+
+// ErrorDepthf acts as Errorf but uses depth to determine which call frame to log.
+// ErrorDepthf(0, "msg") is the same as Errorf("msg").
+func ErrorDepthf(depth int, format string, args ...interface{}) {
+	logging.printf(errorLog, logging.logr, depth, format, args...)
 }
 
 // ErrorS structured logs to the ERROR, WARNING, and INFO logs.
@@ -1477,7 +1511,13 @@ func Fatalln(args ...interface{}) {
 // including a stack trace of all running goroutines, then calls os.Exit(255).
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Fatalf(format string, args ...interface{}) {
-	logging.printf(fatalLog, logging.logr, format, args...)
+	logging.printf(fatalLog, logging.logr, 0, format, args...)
+}
+
+// FatalDepthf acts as Fatalf but uses depth to determine which call frame to log.
+// FatalDepthf(0, "msg") is the same as Fatalf("msg").
+func FatalDepthf(depth int, format string, args ...interface{}) {
+	logging.printf(fatalLog, logging.logr, depth, format, args...)
 }
 
 // fatalNoStacks is non-zero if we are to exit without dumping goroutine stacks.
@@ -1508,7 +1548,13 @@ func Exitln(args ...interface{}) {
 // Arguments are handled in the manner of fmt.Printf; a newline is appended if missing.
 func Exitf(format string, args ...interface{}) {
 	atomic.StoreUint32(&fatalNoStacks, 1)
-	logging.printf(fatalLog, logging.logr, format, args...)
+	logging.printf(fatalLog, logging.logr, 0, format, args...)
+}
+
+// ExitDepthf acts as Exitf but uses depth to determine which call frame to log.
+// ExitDepthf(0, "msg") is the same as Exitf("msg").
+func ExitDepthf(depth int, format string, args ...interface{}) {
+	logging.printf(fatalLog, logging.logr, depth, format, args...)
 }
 
 // ObjectRef references a kubernetes object

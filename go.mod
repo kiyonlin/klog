@@ -1,4 +1,4 @@
-module k8s.io/klog/v2
+module github.com/kiyonlin/klog
 
 go 1.13
 
